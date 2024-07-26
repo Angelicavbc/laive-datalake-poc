@@ -1,0 +1,8 @@
+README.md
+setup.py
+glue_utils/__init__.py
+glue_utils/utils.py
+glue_utils.egg-info/PKG-INFO
+glue_utils.egg-info/SOURCES.txt
+glue_utils.egg-info/dependency_links.txt
+glue_utils.egg-info/top_level.txt
