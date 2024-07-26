@@ -20,3 +20,26 @@ aws s3 ls --profile 637423333664_AWSAdministratorAccess
 docker run -it -v C:/Users/Caleidos/.aws:/home/glue_user/.aws -v C:/Users/Caleidos/laive-datalake-poc:/home/glue_user/workspace/jupyter_workspace/ -e AWS_PROFILE=$PROFILE_NAME -e AWS_REGION=us-east-2 -e DISABLE_SSL=true --rm -p 4040:4040 -p 18080:18080 -p 8998:8998 -p 8888:8888 --name glue_jupyter_lab amazon/aws-glue-libs:glue_libs_3.0.0_image_01 /home/glue_user/jupyter/jupyter_start.sh
 
 Considerar que los volumenes se asignan al contenedor de Docker.
+
+# Nota:
+en los buckets donde se encuentran los objetos (data), considerar la siguiente política de bucket (ejemplo):
+{
+    "Version": "2012-10-17",
+    "Id": "ExamplePolicy01",
+    "Statement": [
+        {
+            "Sid": "ExampleStatement01",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": [
+                "s3:GetObject",
+                "s3:GetBucketLocation",
+                "s3:ListBucket"
+            ],
+            "Resource": [
+                "arn:aws:s3:::delta-glue-tests-2/*",
+                "arn:aws:s3:::delta-glue-tests-2"
+            ]
+        }
+    ]
+}
