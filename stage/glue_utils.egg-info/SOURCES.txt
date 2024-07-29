@@ -1,4 +1,3 @@
-README.md
 setup.py
 glue_utils/__init__.py
 glue_utils/utils.py
