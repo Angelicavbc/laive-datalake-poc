@@ -36,7 +36,7 @@ def transform(glueContext, source_config, config, source_inclussions = None):
             source = el_config["source"]
             destination = el_config["destination"]
             mappings = el_config["mappings"]
-            autoincrement_column = el_config["autoincrement_column"]
+#           autoincrement_column = el_config["autoincrement_column"]
 
             # Read CSV from the source path
             if source_config['type'] == 's3':
@@ -45,13 +45,23 @@ def transform(glueContext, source_config, config, source_inclussions = None):
             # Apply column renaming and data type transformations
             dyf_schema = dyf.schema()
             dyf_t = dyf.apply_mapping(list(map(lambda t: (t[0], dyf_schema.getField(t[0]).dataType.typeName(), t[2], t[3]) if t[1] == "Dynamic" else tuple(t), mappings)))
-            if autoincrement_column:
-                autoincrement_order_by = el_config["autoincrement_order_by"]
-                window_spec_id = Window.orderBy(autoincrement_order_by)
-                df_t = dyf_t.toDF().withColumn(autoincrement_column, row_number().over(window_spec_id))\
-                        .withColumn(autoincrement_column, col(autoincrement_column))
-                
-                dyf_t = DynamicFrame.fromDF(df_t, glueContext, "dyf_t")
-            
+#            if autoincrement_column:
+#                autoincrement_order_by = el_config["autoincrement_order_by"]
+#                window_spec_id = Window.orderBy(autoincrement_order_by)
+#                df_t = dyf_t.toDF().withColumn(autoincrement_column, row_number().over(window_spec_id))\
+#                       .withColumn(autoincrement_column, col(autoincrement_column))
+#                
+#               dyf_t = DynamicFrame.fromDF(df_t, glueContext, "dyf_t")            
             dyf_map[el_name] = {'table': destination, 'data': dyf_t}
     return dyf_map
+
+def save_dyf(glueContext, s3_path, dyf_map, format = 'parquet', format_options = {}):
+    for source, dyf_data in dyf_map.items():
+        s3_resource_path = s3_path + dyf_data['table'] + '/'
+        glueContext.purge_s3_path(s3_resource_path,  {"retentionPeriod": 0})
+        glueContext.write_dynamic_frame.from_options(\
+            frame = dyf_data['data'], \
+            connection_options = {'path': s3_resource_path}, \
+            connection_type = 's3', \
+            format = format, \
+            format_options = format_options)
